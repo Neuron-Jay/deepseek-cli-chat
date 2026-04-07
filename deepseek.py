@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 
 # --- 配置区域 ---
@@ -7,7 +8,11 @@ from openai import OpenAI
 
 # 方法2：通过环境变量设置（更安全，推荐）
 # 你可以在运行前通过命令设置：export DEEPSEEK_API_KEY="你的_API_密钥"
-api_key = os.environ.get("DEEPSEEK_API_KEY")
+
+# 1.加载.env文件中的变量
+load_dotenv()
+# 2.从环境变量中提取key
+api_key = os.getenv("DEEPSEEK_API_KEY")
 
 if not api_key:
     print("错误：未找到 API Key，请正确设置环境变量或在代码中填写。")
@@ -25,8 +30,8 @@ try:
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
-            {"role": "system", "content": "你是一个乐于助人的Python编程助手。"},
-            {"role": "user", "content": "请用Python写一个判断闰年的函数，并解释其逻辑。"}
+            {"role": "system", "content": input("请为DeepSeek设定你想要的人设：")},
+            {"role": "user", "content": input("请输入你想要DeepSeek回答的问题：")}
         ],
         temperature=0.3,
         max_tokens=300
