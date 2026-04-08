@@ -108,18 +108,24 @@ def select_conversation():
         return safe_name
 
 # ==================== 其他功能 ====================
-def get_temperature() -> float:
+def get_temperature(default: float = 0.7) -> float:
     while True:
-        user_input = input("请设置 temperature 参数 （0~1.5，具体请参考DeepSeek API文档）：")
+        user_input = input(f"请设置 temperature（默认 {default}，回车直接使用）：").strip()
+
+        if user_input == "":
+            print(f"✅ 使用默认值 {default}")
+            return default
+
         try:
             temp = float(user_input)
-            if 0<= temp <= 1.5:
-                print("设置成功！")
+            if 0 <= temp <= 1.5:
+                print(f"✅ 设置成功：{temp}")
                 return temp
             else:
-                print("⚠️数值超出范围，请输入0~1.5的数字。")
+                print("⚠️ 超出范围（0~1.5）")
         except ValueError:
-            print("❌ 错误：无效输入，请输入一个数字（例如1.0）。")
+            print("❌ 请输入数字")
+
 
 
 
