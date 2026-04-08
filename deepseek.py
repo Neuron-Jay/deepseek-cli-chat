@@ -99,7 +99,7 @@ def select_conversation():
         # 过滤非法字符
         safe_name = "".join(c for c in new_name if c.isalnum() or c in " _-")
         if not safe_name:
-            print("❌ 名称只能包含字母、数字、空格、下划线、连字符。")
+            print("❌ 名称只能包含汉字、字母、数字、空格、下划线、连字符。")
             continue
         # 检查是否已存在
         if safe_name in list_conversations():
@@ -107,12 +107,29 @@ def select_conversation():
             continue
         return safe_name
 
+# ==================== 其他功能 ====================
+def get_temperature() -> float:
+    while True:
+        user_input = input("请设置 temperature 参数 （0~1.5，具体请参考DeepSeek API文档）：")
+        try:
+            temp = float(user_input)
+            if 0<= temp <= 1.5:
+                print("设置成功！")
+                return temp
+            else:
+                print("⚠️数值超出范围，请输入0~1.5的数字。")
+        except ValueError:
+            print("❌ 错误：无效输入，请输入一个数字（例如1.0）。")
+
+
+
 # ==================== 主程序 ====================
 def main():
     # 选择或新建对话
     current_name = select_conversation()
     conversation = load_conversation(current_name)
     print(f"\n📂 当前对话：{current_name} （已加载 {len(conversation)-1} 条历史消息）")
+    user_temperature = get_temperature()
 
     print("""⚠️使用前请确保您已关闭网络代理服务⚠️
     🤖 使用教程👇
@@ -172,7 +189,7 @@ def main():
             stream = client.chat.completions.create(
                 model="deepseek-chat",
                 messages=conversation,
-                temperature=0.7,
+                temperature=user_temperature,
                 max_tokens=1000,
                 stream=True
             )
