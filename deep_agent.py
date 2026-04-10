@@ -14,6 +14,8 @@ from dotenv import load_dotenv
 # ====== API KEY ======
 load_dotenv()
 api_key = os.getenv("DEEPSEEK_API_KEY")
+if not api_key:
+    raise ValueError("❌ 未找到 DEEPSEEK_API_KEY，请在 .env 文件中设置")
 
 # ====== 初始化客户端 ======
 client = OpenAI(
