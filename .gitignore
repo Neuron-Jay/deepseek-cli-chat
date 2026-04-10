@@ -1,3 +1,4 @@
 .env
 conversations/
 text_file_repository/
+summary_outputs/

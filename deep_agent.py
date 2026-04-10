@@ -2,6 +2,7 @@
 DeepSeek V3.2 文本分析机器人
 - 支持对.txt, .docx,.pdf文件类型的分析功能
 - 目前支持的skill: summary
+-请预先安装python-docx, pymupdf,openai库
 """
 
 from openai import OpenAI
@@ -104,8 +105,19 @@ def deep_agent(file_path):
 
     result = summary(content[:5000])  # 防止超长（先截断）
 
+    # Step 3: 生成总结
     print("📝 总结结果：\n")
     print(result)
+    output_dir = "summary_outputs"
+    os.makedirs(output_dir, exist_ok=True)
+    base_name = os.path.splitext(os.path.basename(file_path))[0]
+    output_path = os.path.join(output_dir, f"{base_name}_summary.md")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(f"# 文件总结：{os.path.basename(file_path)}\n\n")
+        f.write(result)
+
+    print(f"\n💾 总结已自动保存至：{output_path}")
 
 
 # ====== 5. 运行 ======
