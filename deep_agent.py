@@ -1,6 +1,6 @@
 """
 DeepSeek V3.2 文本分析机器人
-- 支持对.txt, .docx文件类型的分析功能
+- 支持对.txt, .docx,.pdf文件类型的分析功能
 - 目前支持的skill: summary
 """
 
@@ -8,6 +8,7 @@ from openai import OpenAI
 import json
 import os
 from docx import Document
+import fitz
 from dotenv import load_dotenv
 
 # ====== API KEY ======
@@ -33,6 +34,15 @@ def read_docx(file_path):
         full_text.append(para.text)
     return "\n".join(full_text)
 
+def read_pdf(file_path):
+    pdf = fitz.open(file_path)
+    full_text = []
+    for page in pdf:
+        text_page = page.get_text()
+        full_text.append(text_page)
+    pdf.close()
+    return "\n".join(full_text)
+
 def read_file(file_path):
     if not os.path.exists(file_path):
         return "文件不存在"
@@ -43,21 +53,24 @@ def read_file(file_path):
     elif file_path.endswith(".docx"):
         return read_docx(file_path)
 
+    elif file_path.endswith(".pdf"):
+        return read_pdf(file_path)
+
     else:
         return "暂不支持该文件类型"
 
 
 # ====== 2. Skill ======
 
-# ====== Summary功能 ======
+# ====== summary功能 ======
 def summary(text):
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
             {"role": "system", "content": "你是一个专业的学术助手，请用简洁清晰的语言总结文本的核心内容"},
-            {"role": "user", "content": f"请总结以下内容：\n{text}"}
+            {"role": "user", "content": f"请将以下文本总结为：1. 背景;2. 问题;3. 方法;4. 结果;5. 意义。\n{text}"}
         ],
-        temperature = 1.0
+        temperature = 0.7
     )
     return response.choices[0].message.content
 
