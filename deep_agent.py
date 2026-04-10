@@ -6,7 +6,6 @@ DeepSeek V3.2 文本分析机器人
 """
 
 from openai import OpenAI
-import json
 import os
 from docx import Document
 import fitz
@@ -62,33 +61,119 @@ def read_file(file_path):
     else:
         return "暂不支持该文件类型"
 
+def list_files():
+    # 文本存储目录
+    os.makedirs("text_file_repository", exist_ok=True)
+    all_files = os.listdir("text_file_repository")
+    files = []
+    for file in all_files:
+        if file.endswith((".txt", ".docx", ".pdf")):
+            files.append(file)
+        else:
+            continue
+    return files
 
-# ====== 2. Skill ======
+# ====== 2. Skills ======
 
 # ====== summary功能 ======
 def summary(text):
-    response = client.chat.completions.create(
+    response_3 = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
-            {"role": "system", "content": "你是一个专业的学术助手，请用简洁清晰的语言总结文本的核心内容"},
+            {"role": "system", "content": "你是一个专业的学术助手，请用清晰的语言总结文本的核心内容。"},
             {"role": "user", "content": f"请将以下文本总结为：1. 背景;2. 问题;3. 方法;4. 结果;5. 意义。\n{text}"}
         ],
         temperature = 0.7
     )
-    return response.choices[0].message.content
+    return response_3.choices[0].message.content
+
+# ====== explain功能 ======
+def explain(text):
+    response_2 = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {"role": "system", "content": "你是一个专业的学术助手，请用“像教授授课一样”的方式讲解文本的核心内容。"},
+            {"role": "user", "content": f"请用相对通俗的语言解释以下内容，如果涉及专业术语，请给出简单解释，但请避免滥用比喻和类比。\n{text}"}
+        ],
+        temperature=0.7
+    )
+    return response_2.choices[0].message.content
+
+# ======extract keywords功能 ======
+def key_words(text):
+    response_3 = client.chat.completions.create(model="deepseek-chat",
+        messages=[
+            {"role": "system", "content": "你是一个专业的学术助手，请用精炼严谨的语言回答问题。"},
+            {"role": "user", "content": f"请提取文本中的关键概念，并用列表列出，每个概念附带一句简要解释。\n{text}"}
+        ],
+        temperature=0.7)
+    return response_3.choices[0].message.content
+
+# ====== skill选择菜单 ======
+agent_skills = {
+    "1": ("summary", "结构化总结", summary),
+    "2": ("explain", "解释文本", explain),
+    "3": ("keywords", "提取关键词", key_words)
+}
+
+def select_skill():
+    print("\n🔑 已有的功能：")
+    for skill_num, skill in agent_skills.items():
+        print(f"{skill_num}.{skill[1]}")
+    while True:
+        choice = input("\n请选择序号：: ").strip()
+        if not choice:
+            print("⚠️请输入序号")
+            continue
+
+        if not choice.isdigit():
+            print("❌ 请输入数字")
+            continue
+
+        if choice not in agent_skills:
+            print("❌ 无效序号，请重新输入")
+            continue
+
+        return agent_skills[choice]
 
 
 # ====== 3. 工具注册 ======
 
-tools = {
-    "read_file": read_file,
-    "summary": summary
-}
 
 
-# ====== 4. Agent核心 ======
+# ====== 4. 文件选择菜单 ======
 
-def deep_agent(file_path):
+def select_file():
+    file_list = list_files()
+    print("\n📁 已有的文本：")
+    if file_list:
+        for i,file in enumerate(file_list,1):
+            print(f"{i}. {file}")
+        print("若无目标文件，请确认是否添加文件到根目录的text_file_repository中。")
+    else:
+        print("暂无文件，请手动添加到根目录的text_file_repository中。")
+        return None
+
+    while True:
+        choice = input("\n请选择序号: ").strip()
+        if not choice:
+            print("⚠️请输入序号")
+            continue
+
+        # 尝试解析为序号
+        if choice.isdigit():
+            idx = int(choice)
+            if file_list and 1 <= idx <= len(file_list):
+                selected_file = file_list[idx - 1]
+                return os.path.join("text_file_repository", selected_file)
+            else:
+                print("❌ 无效序号，请重新输入。")
+                continue
+
+# ====== 5. Agent主程序 ======
+
+def deep_agent(file_path, skill_key, skill_name, skill_func):
+
     print(f"\n📂 目标文件: {file_path}")
 
     # Step 1: 读取文件
@@ -101,27 +186,32 @@ def deep_agent(file_path):
     print("\n📖 文件读取成功，长度:", len(content))
 
     # Step 2: 调用总结
-    print("\n🧠 正在总结...\n")
-
-    result = summary(content[:5000])  # 防止超长（先截断）
+    print(f"\n🧠 正在执行：{skill_name}...\n")
+    result = skill_func(content[:5000])
 
     # Step 3: 生成总结
-    print("📝 总结结果：\n")
+    print("📝 结果：\n")
     print(result)
-    output_dir = "summary_outputs"
+    output_dir = f"{skill_key}_outputs"
     os.makedirs(output_dir, exist_ok=True)
     base_name = os.path.splitext(os.path.basename(file_path))[0]
-    output_path = os.path.join(output_dir, f"{base_name}_summary.md")
+    output_path = os.path.join(output_dir, f"{base_name}_{skill_key}.md")
 
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(f"# 文件总结：{os.path.basename(file_path)}\n\n")
+        f.write(f"# {skill_name}：{os.path.basename(file_path)}\n\n")
         f.write(result)
 
     print(f"\n💾 总结已自动保存至：{output_path}")
 
 
-# ====== 5. 运行 ======
+# ====== 6. 运行 ======
 
 if __name__ == "__main__":
-    file_path = input("请输入文件路径(text_file_repository\文件名): ")
-    deep_agent(file_path)
+    file_path = select_file()
+    if file_path is None:        # ✅ 先判断文件是否有效
+        print("❌ 未选择文件，程序退出。")
+        exit()
+    skill_key, skill_name, skill_func = select_skill()
+    deep_agent(file_path, skill_key, skill_name, skill_func)
+
+
