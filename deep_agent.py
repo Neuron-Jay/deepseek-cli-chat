@@ -151,7 +151,7 @@ def select_file():
             print(f"{i}. {file}")
         print("若无目标文件，请确认是否添加文件到根目录的text_file_repository中。")
     else:
-        print("暂无文件，请手动添加到根目录的text_file_repository中。")
+        print("暂无文件，请手动添加到根目录的text_file_repository中，或手动创建该目录。")
         return None
 
     while True:
