@@ -130,7 +130,7 @@ def get_temperature(default: float = 0.7) -> float:
 
 
 # ==================== 主程序 ====================
-def main():
+def deepseek_chat():
     # 选择或新建对话
     current_name = select_conversation()
     conversation = load_conversation(current_name)
@@ -217,4 +217,4 @@ def main():
             conversation.pop()  # 移除刚才的用户消息
 
 if __name__ == "__main__":
-    main()
+    deepseek_chat()

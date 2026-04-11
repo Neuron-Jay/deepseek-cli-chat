@@ -189,10 +189,10 @@ def deep_agent(file_path, skill_key, skill_name, skill_func):
     print(f"\n🧠 正在执行：{skill_name}...\n")
     result = skill_func(content[:5000])
 
-    # Step 3: 生成总结
+    # Step 3: 生成结果并保存
     print("📝 结果：\n")
     print(result)
-    output_dir = f"{skill_key}_outputs"
+    output_dir = os.path.join("papers_analysis_output", f"{skill_key}_outputs")
     os.makedirs(output_dir, exist_ok=True)
     base_name = os.path.splitext(os.path.basename(file_path))[0]
     output_path = os.path.join(output_dir, f"{base_name}_{skill_key}.md")
@@ -200,9 +200,7 @@ def deep_agent(file_path, skill_key, skill_name, skill_func):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(f"# {skill_name}：{os.path.basename(file_path)}\n\n")
         f.write(result)
-
-    print(f"\n💾 总结已自动保存至：{output_path}")
-
+    print(f"\n💾 结果已自动保存至：{output_path}")
 
 # ====== 6. 运行 ======
 

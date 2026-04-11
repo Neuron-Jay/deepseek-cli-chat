@@ -1,4 +1,5 @@
 .env
 conversations/
 text_file_repository/
-summary_outputs/
+paper_batch/
+papers_analysis_output/
