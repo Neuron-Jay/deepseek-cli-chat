@@ -21,9 +21,7 @@ RUN_ALL_SKILLS = True
 
 def batch_process():
     # 确保论文目录存在
-    if not os.path.exists(PAPER_DIR):
-        print(f"❌ 文件夹 '{PAPER_DIR}' 不存在，请创建并放入论文文件。")
-        return
+    os.makedirs(PAPER_DIR, exist_ok=True)
 
     # 收集所有支持的文件
     supported_ext = (".txt", ".docx", ".pdf")
